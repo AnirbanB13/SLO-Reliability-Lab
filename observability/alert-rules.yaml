@@ -1,0 +1,44 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: checkout-slo-alerts
+  namespace: checkout
+  labels:
+    release: kps
+spec:
+  groups:
+    - name: checkout.slo
+      rules:
+        - alert: CheckoutHighErrorRate
+          expr: |
+            sum(rate(checkout_requests_total{outcome="error"}[5m]))
+            /
+            sum(rate(checkout_requests_total[5m])) > 0.02
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Checkout error rate above 2% for 5 minutes"
+            runbook: "docs/runbook.md"
+
+        - alert: CheckoutHighLatencyP95
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le) (rate(checkout_request_duration_seconds_bucket[5m]))
+            ) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Checkout p95 latency above 500ms for 10 minutes"
+            runbook: "docs/runbook.md"
+
+        - alert: CheckoutNotReady
+          expr: |
+            kube_pod_status_ready{namespace="checkout", condition="true"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "A checkout pod has been not-ready for 2 minutes"
+            runbook: "docs/runbook.md"

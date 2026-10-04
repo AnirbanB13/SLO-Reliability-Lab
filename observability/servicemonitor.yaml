@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: checkout-api
+  namespace: checkout
+  labels:
+    release: kps
+spec:
+  selector:
+    matchLabels:
+      app: checkout-api       # matches the label on your Service
+  endpoints:
+    - port: http              # matches the port *name* on your Service
+      path: /metrics
+      interval: 15s

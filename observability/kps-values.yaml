@@ -1,0 +1,12 @@
+grafana:
+  adminPassword: admin        # lab only; never do this in a real environment
+
+# kind doesn't expose these control-plane components, so their "down" alerts would just add noise
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeEtcd:
+  enabled: false
+kubeProxy:
+  enabled: false
